@@ -1,0 +1,2 @@
+# final_mathmodeling_class_2026_spring
+中科大2026数学建模课程大作业小组仓库
