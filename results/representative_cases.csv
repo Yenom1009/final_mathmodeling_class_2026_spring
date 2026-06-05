@@ -1,0 +1,4 @@
+case_id,description,k_fear,alpha_mem,model,class,x_mean,y_mean,x_amp,y_amp,r,d1,d2,p_pred,h_handle,eta,d3
+Case A,"No fear oscillates, stronger fear stabilizes coexistence.",1.0,5.011872336272725,M2 memory fear,stable_coexistence,29.999999999999996,1.7134302209383245,0.0,0.0,0.5,0.0,0.005,0.08,0.1,0.5,0.3
+Case B,Fear lowers predator peak while oscillation remains under slow memory.,4.800000000000001,0.01,M2 memory fear,oscillatory_coexistence,30.0781796512102,0.42076680603771066,18.366684268929482,0.5167839375864025,0.5,0.0,0.005,0.08,0.1,0.5,0.3
+Case C,Long memory induces or amplifies oscillation while fast memory is stable.,5.2,0.01,M2 memory fear,oscillatory_coexistence,29.732038685154812,0.427628459885268,18.718717941286,1.5023980206595406,0.5,0.0,0.005,0.08,0.1,0.5,0.3

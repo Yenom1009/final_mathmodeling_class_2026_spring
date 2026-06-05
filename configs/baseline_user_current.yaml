@@ -1,0 +1,12 @@
+# Original compatibility values: r=0.5, K=100, c=0.8, a=10, eta=0.5, d=0.3.
+# Converted to p*x*y/(1+h*x): p_pred=c/a=0.08, h_handle=1/a=0.1.
+r: 0.5
+d1: 0.0
+d2: 0.005
+p_pred: 0.08
+h_handle: 0.1
+eta: 0.5
+d3: 0.3
+x0: 30.0
+y0: 10.0
+z0: 10.0
