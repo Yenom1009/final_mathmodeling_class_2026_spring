@@ -1,0 +1,26 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath,amssymb,graphicx,geometry}
+\geometry{margin=2.4cm}
+\title{恐惧效应与记忆反馈下捕食者--猎物系统的动力学建模与稳定性分析}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\section*{说明}
+完整报告正文见 report.md；本文件保留主要公式与图表插入入口，便于后续用 XeLaTeX 排版。
+\section*{主模型}
+\[
+\begin{cases}
+x'=\dfrac{rx}{1+kz}-d_1x-d_2x^2-\dfrac{pxy}{1+hx},\\
+y'=\eta\dfrac{pxy}{1+hx}-d_3y,\\
+z'=\alpha(y-z).
+\end{cases}
+\]
+\section*{Routh--Hurwitz 条件}
+\[
+A_1=\alpha-A,\quad A_2=-A\alpha-BD,\quad A_3=-\alpha D(B+C),
+\]
+\[
+A_1>0,\quad A_2>0,\quad A_3>0,\quad A_1A_2>A_3.
+\]
+\end{document}

@@ -1,0 +1,509 @@
+\documentclass{article}
+\usepackage[UTF8]{ctex}
+\usepackage[tc]{titlepic}
+\usepackage{titlesec}
+\usepackage{cite}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage[section]{placeins}
+\usepackage{amsmath,amssymb}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{float}
+\geometry{a4paper,scale=0.8}
+\pagestyle{fancy}
+
+\lhead{数学建模课程\\\today}
+\chead{中国科学技术大学\\数学建模课程}
+\rhead{Predator--Prey Fear Effect\\ {\CTEXoptions[today=old]\today}}
+\newcommand{\upcite}[1]{\textsuperscript{\cite{#1}}}
+\graphicspath{{figures/}{../figures/}}
+
+\titleformat*{\section}{\bfseries\Large}
+\titleformat*{\subsection}{\bfseries\large}
+\titleformat*{\subsubsection}{\bfseries\normalsize}
+
+\title{\bfseries 恐惧效应与记忆反馈下捕食者--猎物系统的动力学建模与稳定性分析}
+\author{姓名：\underline{\hspace{3cm}} \quad 课程ID：\underline{\hspace{2.5cm}} \quad 学号：\underline{\hspace{3cm}}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文围绕恐惧效应下的捕食者--猎物动力学建立机制模型。模型主线为：捕食者数量改变猎物感知风险，感知风险降低猎物有效出生率，并进一步改变猎物与捕食者的长期动力学。本文在经典 Holling II 捕食者--猎物模型基础上，依次建立无恐惧模型、即时恐惧模型和记忆恐惧模型，并将三级食物链作为扩展模块。理论部分证明正性和有界性，推导正共存平衡、Jacobian、即时恐惧模型局部稳定性以及记忆模型的 Routh--Hurwitz 条件。数值部分通过时间序列、相图、$k$ 分岔图、$k-\alpha$ 二参数热力图和理论边界对照，展示恐惧稳定系统、恐惧降低捕食者密度但仍保持振荡、长记忆诱发或放大振荡三类典型现象。结果说明：恐惧效应不应简单理解为“使猎物更少”或“必然稳定系统”，其作用方向依赖参数区间和记忆反馈速度；本文结论属于机制模拟和定性分析，不声称对真实生态系统进行精确预测。
+\end{abstract}
+
+\clearpage
+\setcounter{section}{1}
+\section*{\centerline{一、前言（问题的提出）}}
+
+捕食者对猎物的影响通常首先被理解为直接捕食，即捕食者通过杀死并消耗猎物减少猎物数量。但生态学研究表明，捕食者还会通过非消耗效应影响猎物：猎物感知到捕食风险后，可能减少觅食、改变活动区域、提高警觉性，甚至降低繁殖投入。Lima 与 Dill\upcite{lima1990behavioral}指出，动物会在生态时间尺度上评估和调节自身面临的捕食风险。Preisser 与 Bolnick\upcite{preisser2008many}进一步将这类作用概括为非消耗性捕食者效应。Zanette 等\upcite{zanette2011perceived}的鸣禽实验显示，仅感知捕食风险就可以使年后代数量下降约 $40\%$。这说明捕食者即使没有直接捕食，也可能显著改变猎物种群增长。
+
+因此，本项目关注如下机制链条：
+\[
+\text{捕食者数量}
+\longrightarrow
+\text{猎物感知风险}
+\longrightarrow
+\text{猎物繁殖下降}
+\longrightarrow
+\text{种群动力学改变}.
+\]
+其中，感知风险不仅可以由当前捕食者数量决定，还可能受到历史捕食压力影响。为避免模型过度复杂，本文先完成二维捕食者--猎物系统中的恐惧效应和记忆反馈建模，再将三级食物链作为扩展讨论。
+
+\setcounter{section}{2}
+\section*{\centerline{二、相关工作}}
+
+\subsection{行为生态学依据}
+恐惧效应的生态学基础来自行为生态学。Lima 与 Dill\upcite{lima1990behavioral}强调动物会在觅食、逃避、社群活动和繁殖行为中权衡捕食风险与收益。Preisser 与 Bolnick\upcite{preisser2008many}指出，非消耗效应可通过行为、生理、存活和繁殖等路径影响猎物种群。Zanette 等\upcite{zanette2011perceived}通过野外实验说明，在排除直接捕食后，仅捕食者声音造成的风险感知即可显著降低鸣禽繁殖成功率。本文用该结果对恐惧函数的量级进行说明，而不进行真实参数拟合。
+
+\subsection{经典恐惧模型}
+Wang、Zanette 与 Zou\upcite{wang2016modelling}是本文主要数学参考。该文将恐惧函数 $f(k,y)$ 乘入猎物出生项，常用形式为
+\[
+f(k,y)=\frac{1}{1+ky}.
+\]
+在 Holling II 捕食函数下，恐惧强度不仅会改变共存平衡稳定性，还可能改变 Hopf 分岔方向；高恐惧可稳定系统，低恐惧则可能产生周期解、多重极限环或双稳态。
+
+\subsection{时滞、记忆与扩展模型}
+Liu 等\upcite{liu2021dynamics}在恐惧效应基础上加入妊娠时滞，给出了可借鉴的参数组和 $k$ 分岔图。Yang 与 Jin\upcite{yang2022dynamics}研究的是带空间记忆的扩散型捕食者--猎物模型，本文不复现其 PDE，而是将“历史风险影响当前动力学”的思想简化为 ODE 记忆变量。Panday 等\upcite{panday2018stability}研究了三级食物链中的恐惧效应，说明恐惧可能使复杂食物链动力学趋于稳定。Zhao、Yu 与 Li\upcite{zhao2025dynamics}提供了空间扩散和 Turing 不稳定的近期扩展参考。
+
+\setcounter{section}{3}
+\section*{\centerline{三、问题分析}}
+
+题目要求从机制出发建立模型，而不是用真实数据做精确预测。因此，本文将主要问题拆成三层：
+\begin{enumerate}[label=(\arabic*)]
+    \item 无恐惧时，Holling II 捕食者--猎物模型是否产生稳定共存或周期振荡；
+    \item 引入即时恐惧后，恐惧强度 $k$ 如何改变平衡点、捕食者密度和振荡幅度；
+    \item 引入记忆变量 $z(t)$ 后，记忆更新速率 $\alpha$ 如何改变稳定性和周期行为。
+\end{enumerate}
+
+本文重点不是把所有机制都塞入同一个主模型，而是保持主模型足够清晰：恐惧只降低猎物有效出生率，捕食仍通过 Holling II 函数发生，记忆变量只表示风险感知，不代表第三个物种。三级食物链扩展只用于说明多营养级恐惧效应的新问题。
+
+\setcounter{section}{4}
+\section*{\centerline{四、建模的假设}}
+
+\begin{enumerate}[label=\textbf{H\arabic*.}]
+    \item 系统封闭，不考虑外来迁入和迁出。
+    \item 空间环境均匀，不考虑空间扩散和斑图形成。
+    \item 时间连续，种群密度用连续变量表示。
+    \item 猎物在无捕食者时具有出生、自然死亡和种内竞争。
+    \item 捕食者依赖猎物获得增长，死亡率为常数。
+    \item 捕食函数采用 Holling II 型。
+    \item 恐惧效应不直接杀死猎物，而是降低猎物有效出生率。
+    \item 猎物对捕食风险有记忆，记忆风险 $z(t)$ 是历史捕食者密度的平滑平均。
+    \item 所有参数非负，主要分析正参数情况。
+    \item 初始种群密度为正。
+    \item 数值模拟参考文献参数和合理区间，不进行真实参数拟合。
+    \item 若使用经验数据，只用于现象说明或参数量级校准，不声称精确预测真实种群。
+\end{enumerate}
+
+\setcounter{section}{5}
+\section*{\centerline{五、符号说明}}
+
+\begin{table}[H]
+    \caption{\textbf{主模型符号说明}}
+    \centering
+    \begin{tabular}{ccc}
+    \toprule
+    符号 & 说明 & 单位或属性 \\
+    \midrule
+    $x(t)$ & 猎物密度 & 连续变量 \\
+    $y(t)$ & 捕食者密度 & 连续变量 \\
+    $z(t)$ & 猎物感知到的捕食风险/记忆风险 & 连续变量 \\
+    $r$ & 猎物最大出生率 & 正参数 \\
+    $d_1$ & 猎物自然死亡率 & 非负参数 \\
+    $d_2$ & 猎物种内竞争强度 & 正参数 \\
+    $p$ & 捕食强度 & 正参数 \\
+    $h$ & Holling II 处理时间参数 & 非负参数 \\
+    $\eta$ & 捕食转化效率 & 正参数 \\
+    $d_3$ & 捕食者死亡率 & 正参数 \\
+    $k$ & 恐惧强度 & 非负参数 \\
+    $\alpha$ & 记忆更新速率，越大表示记忆越短 & 正参数 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\setcounter{section}{6}
+\section*{\centerline{六、数学模型建立与理论分析}}
+
+\subsection{无恐惧基准模型 M0}
+令 $k=0$，不引入记忆变量，得到
+\begin{equation}
+\begin{cases}
+\dfrac{dx}{dt}=rx-d_1x-d_2x^2-\dfrac{pxy}{1+hx},\\[6pt]
+\dfrac{dy}{dt}=\eta\dfrac{pxy}{1+hx}-d_3y.
+\end{cases}
+\end{equation}
+该模型作为后续恐惧模型的对照。
+
+\subsection{即时恐惧模型 M1}
+即时恐惧假设猎物感知风险等于当前捕食者密度，即 $z=y$：
+\begin{equation}
+\begin{cases}
+\dfrac{dx}{dt}=\dfrac{rx}{1+ky}-d_1x-d_2x^2-\dfrac{pxy}{1+hx},\\[6pt]
+\dfrac{dy}{dt}=\eta\dfrac{pxy}{1+hx}-d_3y.
+\end{cases}
+\end{equation}
+其中 $1/(1+ky)$ 表示捕食风险降低猎物有效出生率。
+
+\subsection{记忆恐惧模型 M2}
+为描述历史风险，本文引入记忆变量 $z(t)$：
+\begin{equation}
+\label{eq:m2}
+\begin{cases}
+\dfrac{dx}{dt}=\dfrac{rx}{1+kz}-d_1x-d_2x^2-\dfrac{pxy}{1+hx},\\[6pt]
+\dfrac{dy}{dt}=\eta\dfrac{pxy}{1+hx}-d_3y,\\[6pt]
+\dfrac{dz}{dt}=\alpha(y-z).
+\end{cases}
+\end{equation}
+当 $\alpha$ 较大时，$z$ 快速跟随 $y$，记忆较短；当 $\alpha$ 较小时，风险感知更新慢，历史压力的影响更长。
+
+\subsection{正性和有界性}
+若初始值 $x(0)>0,y(0)>0,z(0)>0$，则在坐标平面 $x=0$ 和 $y=0$ 上均有对应导数为零，轨道不会穿出非负区域；当 $z=0$ 且 $y>0$ 时，$z'=\alpha y>0$。因此正初值保持正性。
+
+又因为恐惧函数不超过 $1$，且捕食项非负，
+\[
+\frac{dx}{dt}\le (r-d_1)x-d_2x^2.
+\]
+当 $r>d_1$ 时，
+\[
+\limsup_{t\to\infty}x(t)\le \frac{r-d_1}{d_2}.
+\]
+令 $W(t)=\eta x(t)+y(t)$，直接捕食项在组合函数中抵消，可得到 $W$ 受线性耗散不等式控制，因此 $y(t)$ 最终有界。由于 $z'=\alpha(y-z)$ 是对 $y$ 的指数加权平均，$y$ 有界则 $z$ 也有界。
+
+\subsection{平衡点}
+灭绝平衡为 $E_0=(0,0,0)$。若 $r>d_1$，猎物单独存在平衡为
+\[
+E_1=\left(\frac{r-d_1}{d_2},0,0\right).
+\]
+正平衡满足 $z^\ast=y^\ast$。由捕食者方程可得
+\[
+\eta\frac{p x^\ast}{1+h x^\ast}=d_3.
+\]
+若 $\eta p>d_3h$，则
+\[
+x^\ast=\frac{d_3}{\eta p-d_3h}.
+\]
+令
+\[
+B=\frac{p}{1+h x^\ast},\qquad H=d_1+d_2x^\ast,
+\]
+猎物方程化为
+\[
+Bk(y^\ast)^2+(B+kH)y^\ast+(H-r)=0.
+\]
+当 $r>H$ 时存在正根
+\[
+y^\ast=
+\frac{-(B+kH)+\sqrt{(B+kH)^2+4Bk(r-H)}}{2Bk},
+\qquad z^\ast=y^\ast.
+\]
+当 $k=0$ 时，退化为 $y^\ast=(r-H)/B$。
+
+\subsection{Jacobian 与稳定性}
+M1 在正平衡处的 Jacobian 为
+\[
+J=
+\begin{pmatrix}
+F_x & F_y\\
+G_x & G_y
+\end{pmatrix},
+\]
+其中
+\[
+F_x=\frac{r}{1+ky^\ast}-d_1-2d_2x^\ast-\frac{p y^\ast}{(1+h x^\ast)^2},
+\]
+\[
+F_y=-\frac{rkx^\ast}{(1+ky^\ast)^2}-\frac{px^\ast}{1+h x^\ast}<0,
+\]
+\[
+G_x=\frac{\eta p y^\ast}{(1+h x^\ast)^2}>0,\qquad
+G_y=\eta\frac{p x^\ast}{1+hx^\ast}-d_3=0.
+\]
+因此 $\det J=-F_yG_x>0$，局部稳定性主要由 $\operatorname{tr}J=F_x$ 决定。若 $F_x<0$，正平衡局部渐近稳定；若 $F_x>0$，正平衡不稳定；若 $F_x=0$，可能发生 Hopf 分岔。
+
+M2 在正平衡处的 Jacobian 可写成
+\[
+J=
+\begin{pmatrix}
+A & B & C\\
+D & 0 & 0\\
+0 & \alpha & -\alpha
+\end{pmatrix},
+\]
+其中
+\[
+A=\frac{r}{1+kz^\ast}-d_1-2d_2x^\ast-\frac{p y^\ast}{(1+h x^\ast)^2},
+\quad
+B=-\frac{px^\ast}{1+hx^\ast},
+\]
+\[
+C=-\frac{rkx^\ast}{(1+kz^\ast)^2},
+\quad
+D=\frac{\eta p y^\ast}{(1+h x^\ast)^2}.
+\]
+其特征多项式为
+\[
+\lambda^3+A_1\lambda^2+A_2\lambda+A_3=0,
+\]
+其中
+\[
+A_1=\alpha-A,\qquad
+A_2=-A\alpha-BD,\qquad
+A_3=-\alpha D(B+C).
+\]
+Routh--Hurwitz 稳定条件为
+\[
+A_1>0,\qquad A_2>0,\qquad A_3>0,\qquad A_1A_2>A_3.
+\]
+Hopf 临界边界可由 $A_1A_2=A_3$ 给出。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.82\textwidth]{fig01_mechanism_diagram.png}
+    \caption{恐惧效应与直接捕食路径的机制示意图}
+    \label{fig:mechanism}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{fig02_model_layers.png}
+    \caption{本文使用的模型层级：M0、M1、M2 与 M3}
+    \label{fig:layers}
+\end{figure}
+
+\setcounter{section}{7}
+\section*{\centerline{七、结果（与对比）}}
+
+\subsection{模拟设置}
+数值求解优先使用 \texttt{scipy.integrate.solve\_ivp} 的 DOP853 方法，容差设为 \texttt{rtol=1e-9, atol=1e-11}；二维大网格扫描采用向量化 RK4 以提高复现效率。尾部区间计算均值、最大值、最小值、振幅和相对振幅，并按照稳定共存、振荡共存、捕食者灭绝、猎物灭绝和低密度风险进行分类。
+
+主要参数组来自当前已有强振荡参数组的文献型转换：
+\[
+r=0.5,\quad d_1=0,\quad d_2=0.005,\quad p=0.08,\quad h=0.1,\quad \eta=0.5,\quad d_3=0.3.
+\]
+这里 $p=0.08,h=0.1$ 对应原 Rosenzweig--MacArthur 形式 $0.8xy/(10+x)$。
+
+\begin{table}[H]
+    \caption{\textbf{主数值实验参数}}
+    \centering
+    \begin{tabular}{cccccccccc}
+    \toprule
+    $r$ & $d_1$ & $d_2$ & $p$ & $h$ & $\eta$ & $d_3$ & $x_0$ & $y_0$ & $z_0$ \\
+    \midrule
+    0.5 & 0 & 0.005 & 0.08 & 0.1 & 0.5 & 0.3 & 30 & 10 & 10 \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:params}
+\end{table}
+
+\subsection{时间序列与相图}
+图 \ref{fig:timeseries} 对比了无恐惧、即时恐惧、快记忆恐惧和慢记忆恐惧下的时间序列。无恐惧时系统产生明显周期振荡；加入恐惧后，捕食者峰值和振荡幅度明显改变。慢记忆情况下，风险感知滞后于当前捕食者数量，可能导致振荡保留甚至被放大。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig03_time_series_cases.png}
+    \caption{不同模型和代表性参数下的时间序列}
+    \label{fig:timeseries}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{fig04_phase_portraits.png}
+    \caption{尾部区间的猎物--捕食者相图}
+    \label{fig:phase}
+\end{figure}
+
+\subsection{$k$ 分岔图与均值振幅}
+图 \ref{fig:bifurcation} 展示了尾部最大值和最小值随恐惧强度 $k$ 的变化。当最大值和最小值分离时，说明系统仍有周期振荡；当两者合并时，系统趋于稳定平衡。图 \ref{fig:meanamp} 显示，在本参数组下，$k$ 增大通常降低捕食者平均密度和振荡幅度；无恐惧时捕食者尾部振幅较大，而高恐惧下振幅趋近于零。
+
+\begin{table}[H]
+    \caption{\textbf{$k$ 扫描中的代表点}}
+    \centering
+    \begin{tabular}{ccccc}
+    \toprule
+    $k$ & 分类 & $\bar{x}$ & $\bar{y}$ & $A_y$ \\
+    \midrule
+    0.0 & 振荡共存 & 58.727 & 9.563 & 25.393 \\
+    0.2 & 稳定共存 & 30.000 & 5.000 & $1.69\times10^{-10}$ \\
+    1.0 & 稳定共存 & 30.000 & 1.713 & $1.08\times10^{-11}$ \\
+    5.2 & 稳定共存 & 30.000 & 0.415 & $2.48\times10^{-12}$ \\
+    20.0 & 稳定共存 & 30.000 & 0.114 & $7.08\times10^{-13}$ \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:scan-k}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.86\textwidth]{fig05_bifurcation_k_extrema.png}
+    \caption{恐惧强度 $k$ 的分岔式尾部极值图}
+    \label{fig:bifurcation}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.86\textwidth]{fig06_mean_amplitude_vs_k.png}
+    \caption{均值和振幅随恐惧强度 $k$ 的变化}
+    \label{fig:meanamp}
+\end{figure}
+
+\subsection{$k-\alpha$ 二参数扫描}
+图 \ref{fig:classheat} 显示了 $k-\alpha$ 参数平面中的动力学分类。扫描结果包含稳定共存、振荡共存、低密度风险和少量捕食者灭绝区域。图 \ref{fig:ampheat} 用连续振幅指标展示同一参数平面，可以看出不同振荡区域的强弱差异。
+
+\begin{table}[H]
+    \caption{\textbf{$k-\alpha$ 网格扫描分类计数}}
+    \centering
+    \begin{tabular}{cc}
+    \toprule
+    分类 & 网格点数量 \\
+    \midrule
+    稳定共存 stable\_coexistence & 4550 \\
+    振荡共存 oscillatory\_coexistence & 850 \\
+    低密度风险 low\_density\_risk & 156 \\
+    捕食者灭绝 predator\_extinct & 9 \\
+    数值无效 invalid & 2616 \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:class-count}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{fig07_k_alpha_classification_heatmap.png}
+    \caption{$k-\alpha$ 参数平面的动力学分类热力图}
+    \label{fig:classheat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{fig08_k_alpha_amplitude_heatmap.png}
+    \caption{$k-\alpha$ 参数平面的连续振幅热力图}
+    \label{fig:ampheat}
+\end{figure}
+
+\subsection{理论边界与数值结果对比}
+图 \ref{fig:theory} 将 Routh--Hurwitz 条件给出的临界边界 $A_1A_2=A_3$ 叠加到数值分类热力图上。理论边界能够解释稳定区和振荡区的大体分界；在低密度风险、长周期振荡和有限模拟时间附近，理论线性边界与数值分类会出现局部差异，这是非线性系统数值分类中的常见现象。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{fig09_theory_boundary_vs_simulation.png}
+    \caption{Routh--Hurwitz 理论边界与数值分类对照}
+    \label{fig:theory}
+\end{figure}
+
+\subsection{恐惧函数鲁棒性与经验量级校准}
+为检验结论是否依赖单一恐惧函数，本文比较三种写法：
+\[
+f_1(k,z)=\frac{1}{1+kz},\qquad
+f_2(k,z)=e^{-kz},\qquad
+f_3(k,z)=\frac{1}{1+kz+k_2z^2}.
+\]
+图 \ref{fig:robust} 表明，替换恐惧函数后，捕食者平均密度和振幅随 $k$ 变化的总体趋势仍然保留，说明主要结论具有一定稳健性。
+
+Zanette 等\upcite{zanette2011perceived}报告的 $40\%$ 繁殖下降可作为恐惧函数量级参考。若将高风险归一化为 $z=1$，并要求
+\[
+\frac{1}{1+k}=0.6,
+\]
+则 $k\approx 0.667$。图 \ref{fig:calibration} 只用于说明量级，不用于真实拟合。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.86\textwidth]{fig10_fear_function_robustness.png}
+    \caption{不同恐惧函数形式下的结果鲁棒性}
+    \label{fig:robust}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{fig11_dataset_or_empirical_calibration.png}
+    \caption{基于 Zanette 等实验结果的恐惧函数量级校准}
+    \label{fig:calibration}
+\end{figure}
+
+\subsection{代表性现象}
+参数扫描自动筛选出三类代表性行为：
+\begin{itemize}
+    \item Case A：无恐惧时系统振荡，较强恐惧使系统转为稳定共存；
+    \item Case B：慢记忆下恐惧降低捕食者峰值，但系统仍保持振荡；
+    \item Case C：长记忆诱发或放大振荡，而快记忆条件下系统稳定。
+\end{itemize}
+这三类结果说明，恐惧效应的作用并非单调地“稳定”或“破坏”系统，而取决于恐惧强度与记忆更新速度共同决定的反馈结构。
+
+\begin{table}[H]
+    \caption{\textbf{自动搜索得到的代表性行为}}
+    \centering
+    \begin{tabular}{cccccc}
+    \toprule
+    案例 & $k$ & $\alpha$ & 分类 & $\bar{y}$ & $A_y$ \\
+    \midrule
+    Case A & 1.0 & 5.012 & 稳定共存 & 1.713 & 0.000 \\
+    Case B & 4.8 & 0.010 & 振荡共存 & 0.421 & 0.517 \\
+    Case C & 5.2 & 0.010 & 振荡共存 & 0.428 & 1.502 \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:cases}
+\end{table}
+
+\subsection{三级食物链扩展}
+三级食物链扩展模型为
+\begin{equation}
+\begin{cases}
+\dfrac{dX}{dt}=
+\dfrac{rX}{1+k_1Y}
+-d_X X-a_X X^2
+-\dfrac{p_1XY}{1+h_1X},\\[6pt]
+\dfrac{dY}{dt}=
+\dfrac{\eta_1p_1XY}{1+h_1X}
+\cdot
+\dfrac{1}{1+k_2Z}
+-d_YY
+-\dfrac{p_2YZ}{1+h_2Y},\\[6pt]
+\dfrac{dZ}{dt}=
+\eta_2\dfrac{p_2YZ}{1+h_2Y}
+-d_ZZ.
+\end{cases}
+\end{equation}
+其中 $k_1$ 表示底层猎物对中间捕食者的恐惧，$k_2$ 表示中间捕食者对顶级捕食者的恐惧。图 \ref{fig:tri} 展示了三级模型的一组时间序列和 $(k_1,k_2)$ 扫描结果。该扩展说明，多营养级恐惧效应可能进一步改变食物链稳定性和能量传递。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{fig12_tritrophic_extension.png}
+    \caption{三级食物链扩展模型的时间序列与参数扫描}
+    \label{fig:tri}
+\end{figure}
+
+\setcounter{section}{8}
+\section*{\centerline{八、结论}}
+
+本文在经典捕食者--猎物模型基础上引入恐惧效应和记忆变量，构建了 M0 无恐惧、M1 即时恐惧和 M2 记忆恐惧三个层级模型，并实现了 M3 三级食物链扩展。理论分析表明，正共存平衡的存在依赖于捕食者维持条件
+\[
+\eta p>d_3h
+\]
+以及猎物有效增长条件
+\[
+r>d_1+d_2x^\ast.
+\]
+记忆变量不改变平衡点位置，因为平衡时 $z^\ast=y^\ast$，但它会改变线性化系统特征值，从而影响稳定性。
+
+数值模拟显示，恐惧强度增加通常会降低捕食者平均密度和峰值；在部分参数区间内，高恐惧可使系统从周期振荡转向稳定共存；但在慢记忆区域，恐惧可能降低捕食者峰值却仍保留振荡。长记忆意味着风险反馈滞后，可能拉长或放大周期，甚至引入低密度风险。理论边界与数值热力图在主要稳定区域上基本一致，但在长周期和低密度风险附近存在差异。恐惧函数替换为指数型或二次有理型后，主要趋势仍保持，说明结论具有一定机制稳健性。
+
+\setcounter{section}{9}
+\section*{\centerline{九、问题与改进方向}}
+
+本文仍有以下局限：
+\begin{enumerate}[label=(\arabic*)]
+    \item 没有进行真实参数拟合，所有结论都属于机制模拟和定性分析；
+    \item 记忆变量是对空间记忆和行为记忆的 ODE 化简，不能直接替代 Yang 与 Jin 的 PDE 空间记忆模型；
+    \item 当前分类依赖有限时间数值模拟，极长周期区域可能需要更长时间积分；
+    \item 三级食物链只做扩展模拟，没有完整推导平衡点稳定性和分岔条件；
+    \item 后续可加入 DDE 时滞、空间扩散或真实生态时间序列校准，但这些不应全部塞入主模型。
+\end{enumerate}
+
+\bibliographystyle{ieeetr}
+\bibliography{refer}
+
+\end{document}
