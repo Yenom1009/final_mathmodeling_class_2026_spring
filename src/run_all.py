@@ -16,7 +16,7 @@ Path(os.environ["MPLCONFIGDIR"]).mkdir(parents=True, exist_ok=True)
 Path(os.environ["XDG_CACHE_HOME"]).mkdir(parents=True, exist_ok=True)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-from .classify import compute_tail_metrics
+from .classify import classify_dynamics, compute_tail_metrics
 from .data_sources import (
     write_configs,
     write_literature_files,
@@ -126,9 +126,13 @@ def make_tritrophic(root: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     for k1 in np.linspace(0.0, 2.0, 21):
         for k2 in np.linspace(0.0, 2.0, 21):
             run_params = {**params, "k1": float(k1), "k2": float(k2)}
-            df = simulate_model("tritrophic", run_params, [20.0, 4.0, 1.5], T=250.0, n_points=1001, solver="rk4")
+            df = simulate_model("tritrophic", run_params, [20.0, 4.0, 1.5], T=250.0, n_points=1001, solver="radau")
             metrics = compute_tail_metrics(df, burn_in=150.0)
-            rows.append({"k1": float(k1), "k2": float(k2), **metrics})
+            label = classify_dynamics(metrics)
+            if label == "invalid":
+                for key in list(metrics):
+                    metrics[key] = float("nan")
+            rows.append({"k1": float(k1), "k2": float(k2), **metrics, "class": label})
     scan = pd.DataFrame(rows)
     scan.to_csv(root / "results" / "tritrophic_scan.csv", index=False)
     return ts, scan
@@ -136,11 +140,11 @@ def make_tritrophic(root: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def make_delay_extension(root: Path, params: dict[str, float]) -> dict[str, pd.DataFrame]:
     series: dict[str, pd.DataFrame] = {}
-    for tau in (0.5, 1.0, 2.0):
+    for tau in (0.5, 2.0, 8.0):
         df = simulate_delay_model(
             {**params, "k_fear": 1.0},
-            initial_state=[30.0, 10.0],
-            history_state=[30.0, 10.0],
+            initial_state=[4.0, 0.5],
+            history_state=[4.0, 0.5],
             tau=tau,
             T=500.0,
             n_points=2001,
@@ -177,7 +181,11 @@ def main() -> None:
 
     params = user_literature_params()
     k_values = np.linspace(0.0, 20.0, 101)
-    alpha_values = np.logspace(-2, 2, 81)
+    # The vectorized 2D scan is intended for a reliable qualitative phase map.
+    # Extremely fast memory (alpha >> 1) makes the system stiff and pollutes the
+    # heatmap with numerical invalids without adding much ecological insight,
+    # since M2 then collapses toward the instant-fear limit M1.
+    alpha_values = np.logspace(-2, np.log10(5.0), 65)
     initial = [30.0, 10.0, 10.0]
     scan_k_df = scan_k(
         params,
@@ -217,7 +225,7 @@ def main() -> None:
     case_series = make_time_series(root, params, reps)
     robust_df = make_robustness(root, params)
     tri_ts, tri_scan = make_tritrophic(root)
-    delay_series = make_delay_extension(root, params)
+    delay_series = make_delay_extension(root, literature_liu_params())
     leslie_df = make_leslie_gower_extension(root)
     discrete_traj, discrete_bif = make_discrete_extension(root)
 

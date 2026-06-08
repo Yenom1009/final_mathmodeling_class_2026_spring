@@ -2,7 +2,7 @@
 
 ## Title direction
 
-Use a title that makes the core contribution clear. A strong default is:
+Use a title that makes the core contribution explicit. A strong default is:
 
 `恐惧效应与记忆反馈下捕食者-猎物系统的动力学建模与稳定性分析`
 
@@ -80,7 +80,7 @@ Important:
 Explain:
 
 - ODE solver strategy
-- RK4 or scan approximation use
+- vectorized scan approximation
 - tail-window metrics
 - classification logic
 
@@ -90,7 +90,7 @@ This section matters because it makes the numerical results look designed rather
 
 Recommended order:
 
-1. Baseline time-series comparison
+1. baseline time-series comparison
 2. `k` scan
 3. `k-alpha` scan
 4. theory overlay
@@ -127,6 +127,7 @@ Discuss:
 - why fear can stabilize in some regions but not all
 - why memory changes stability without moving the equilibrium
 - why numerical and theoretical boundaries are close but not identical
+- why the main phase map uses `alpha in [10^-2, 5]` rather than an arbitrarily larger stiff region
 - what the simplified memory variable means biologically
 
 ### 10. 结论
@@ -146,7 +147,7 @@ Fear and memory jointly reshape predator-prey dynamics, and memory-mediated fear
 
 1. mechanism diagram
 2. model-layer diagram
-3. baseline time series
+3. baseline and representative time series
 4. phase portraits
 5. `k` bifurcation-style extrema
 6. mean density and amplitude vs `k`
@@ -155,11 +156,10 @@ Fear and memory jointly reshape predator-prey dynamics, and memory-mediated fear
 9. theory boundary overlay
 10. robustness comparison
 11. empirical scale calibration
-12. representative cases
-13. tritrophic extension
-14. delay extension
-15. Leslie-Gower extension
-16. discrete extension
+12. tritrophic extension
+13. delay extension
+14. Leslie-Gower extension
+15. discrete extension
 
 ## Suggested table order
 

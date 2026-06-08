@@ -358,7 +358,7 @@ def write_configs(root: Path) -> None:
         dedent(
             """
             k_grid: [0, 20, 101]
-            alpha_grid_log10: [-2, 2, 81]
+            alpha_grid_log10: [-2, 0.69897, 65]
             random_ranges:
               r: [0.05, 2.0]
               d1: [0.0, 0.5]
@@ -368,7 +368,7 @@ def write_configs(root: Path) -> None:
               eta: [0.05, 1.0]
               d3: [0.01, 1.0]
               k_fear: [0.0, 20.0]
-              alpha_mem: [0.01, 100.0]
+              alpha_mem: [0.01, 5.0]
             """
         ).strip()
         + "\n",

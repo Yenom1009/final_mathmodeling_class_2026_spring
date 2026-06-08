@@ -35,7 +35,8 @@ def fear_multiplier(k_fear: float, risk: np.ndarray | float, params: Params) -> 
     if form == "exponential":
         return np.exp(-k_fear * risk)
     if form == "quadratic":
-        k2 = float(params.get("k2_fear", 0.05 * max(k_fear, 1.0)))
+        # Keep the no-fear limit exact: when k=0 the multiplier must be 1.
+        k2 = float(params.get("k2_fear", 0.05 * max(k_fear, 0.0)))
         return 1.0 / (1.0 + k_fear * risk + k2 * risk * risk)
     raise ValueError(f"unknown fear_form: {form}")
 

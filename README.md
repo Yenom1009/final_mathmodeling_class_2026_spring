@@ -63,6 +63,17 @@ The pipeline generates:
 - tritrophic extension outputs
 - delay / Leslie-Gower / discrete comparison outputs
 
+Current validated output set:
+
+- figures `fig01` to `fig15`
+- main CSV tables in `results/`
+- time-series case exports in `results/time_series_cases/`
+
+Important numerical note:
+
+- the main `k-alpha` phase map is intentionally restricted to `alpha in [10^-2, 5]`
+- this avoids stiffness-driven numerical invalid regions that appear for extremely fast memory and would otherwise pollute the qualitative heatmap
+
 ## Current positioning
 
 This version is designed to be the strongest engineering and modeling base for the final submission. It is aimed at mechanism analysis and qualitative dynamics, not precise ecological forecasting.
