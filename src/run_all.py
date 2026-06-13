@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import warnings
 from pathlib import Path
 
@@ -32,6 +33,7 @@ from .parameter_sets import (
 from .plotting import (
     plot_amplitude_heatmap,
     plot_bifurcation_k,
+    plot_bifurcation_k_continuation,
     plot_classification_heatmap,
     plot_delay_extension,
     plot_empirical_calibration,
@@ -42,11 +44,14 @@ from .plotting import (
     plot_mechanism_diagram,
     plot_model_layers,
     plot_phase_portraits,
+    plot_representative_cases_overview,
+    plot_results_dashboard,
     plot_theory_boundary,
     plot_time_series_cases,
     plot_tritrophic_extension,
 )
-from .scan import compute_theory_boundary, find_representative_cases, scan_k, scan_k_alpha
+from .report_assets import generate_asset_manifest
+from .scan import compute_theory_boundary, find_representative_cases, scan_k, scan_k_alpha, scan_k_continuation
 from .simulate import simulate_delay_model, simulate_discrete_map, simulate_model
 
 
@@ -59,8 +64,28 @@ def ensure_dirs(root: Path) -> None:
         "figures",
         "report",
         "docs",
+        "overleaf_report/figures",
+        "overleaf_report/tables",
     ]:
         (root / dirname).mkdir(parents=True, exist_ok=True)
+
+
+def sync_overleaf_assets(root: Path) -> None:
+    overleaf_figures = root / "overleaf_report" / "figures"
+    overleaf_figures.mkdir(parents=True, exist_ok=True)
+    for figure_path in sorted((root / "figures").glob("fig*.p*")):
+        shutil.copy2(figure_path, overleaf_figures / figure_path.name)
+    references = root / "references.bib"
+    if references.exists():
+        shutil.copy2(references, root / "overleaf_report" / "refer.bib")
+
+
+def clean_generated_figures(root: Path) -> None:
+    for directory in [root / "figures", root / "overleaf_report" / "figures"]:
+        directory.mkdir(parents=True, exist_ok=True)
+        for pattern in ("fig*.png", "fig*.pdf"):
+            for figure_path in directory.glob(pattern):
+                figure_path.unlink()
 
 
 def user_literature_params() -> dict[str, float]:
@@ -85,15 +110,16 @@ def make_time_series(root: Path, params: dict[str, float], reps: pd.DataFrame) -
         "memory", {**params, "k_fear": 1.0, "alpha_mem": 0.1}, [30.0, 10.0, 10.0], T=T, n_points=n_points
     )
     for _, row in reps.iterrows():
-        if row["case_id"] in {"Case A", "Case C"}:
-            name = f"{row['case_id']} k={row.k_fear:.2g} alpha={row.alpha_mem:.2g}"
-            cases[name] = simulate_model(
-                "memory",
-                {**params, "k_fear": float(row.k_fear), "alpha_mem": float(row.alpha_mem)},
-                [30.0, 10.0, 10.0],
-                T=T,
-                n_points=n_points,
-            )
+        name = f"{row['case_id']} k={row.k_fear:.2g} alpha={row.alpha_mem:.2g}"
+        case_T = 1500.0 if row["case_id"] in {"Case B", "Case C"} else T
+        case_points = 4501 if case_T > T else n_points
+        cases[name] = simulate_model(
+            "memory",
+            {**params, "k_fear": float(row.k_fear), "alpha_mem": float(row.alpha_mem)},
+            [30.0, 10.0, 10.0],
+            T=case_T,
+            n_points=case_points,
+        )
     for name, df in cases.items():
         safe = name.replace(" ", "_").replace("=", "").replace(".", "p")
         df.to_csv(out / f"{safe}.csv", index=False)
@@ -197,6 +223,16 @@ def main() -> None:
         n_points=2501,
         output_path=root / "results" / "scan_k.csv",
     )
+    scan_k_cont_df = scan_k_continuation(
+        params,
+        k_values=k_values,
+        alpha_mem=10.0,
+        initial_state=initial,
+        T=1000.0,
+        burn_in=650.0,
+        n_points=2501,
+        output_path=root / "results" / "scan_k_continuation.csv",
+    )
     scan_df = scan_k_alpha(
         params,
         k_grid=k_values,
@@ -230,6 +266,7 @@ def main() -> None:
     discrete_traj, discrete_bif = make_discrete_extension(root)
 
     figures = root / "figures"
+    clean_generated_figures(root)
     plot_mechanism_diagram(figures / "fig01_mechanism_diagram.png")
     plot_model_layers(figures / "fig02_model_layers.png")
     plot_time_series_cases(case_series, figures / "fig03_time_series_cases.png")
@@ -242,13 +279,19 @@ def main() -> None:
     plot_fear_function_robustness(robust_df, figures / "fig10_fear_function_robustness.png")
     plot_empirical_calibration(figures / "fig11_dataset_or_empirical_calibration.png")
     plot_tritrophic_extension(tri_ts, tri_scan, figures / "fig12_tritrophic_extension.png")
-    plot_delay_extension(delay_series, figures / "fig13_delay_extension.png")
-    plot_leslie_gower_extension(leslie_df, figures / "fig14_leslie_gower_extension.png")
-    plot_discrete_extension(discrete_traj, discrete_bif, figures / "fig15_discrete_extension.png")
+    plot_representative_cases_overview(case_series, reps, figures / "fig13_representative_cases_overview.png")
+    plot_bifurcation_k_continuation(scan_k_df, scan_k_cont_df, figures / "fig14_bifurcation_k_continuation.png")
+    plot_results_dashboard(scan_k_df, scan_df, reps, figures / "fig15_results_dashboard.png")
+    plot_delay_extension(delay_series, figures / "fig16_delay_extension.png")
+    plot_leslie_gower_extension(leslie_df, figures / "fig17_leslie_gower_extension.png")
+    plot_discrete_extension(discrete_traj, discrete_bif, figures / "fig18_discrete_extension.png")
+    sync_overleaf_assets(root)
+    asset_summary = generate_asset_manifest(root)
     print("Generated fear predator-prey project outputs.")
     print(f"Root: {root}")
     print(f"Classes: {scan_df['class'].value_counts().to_dict()}")
     print(f"Representative cases: {reps[['case_id', 'k_fear', 'alpha_mem', 'class']].to_dict(orient='records')}")
+    print(f"Asset summary: {asset_summary}")
 
 
 if __name__ == "__main__":

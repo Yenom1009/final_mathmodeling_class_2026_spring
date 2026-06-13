@@ -40,6 +40,44 @@ def scan_k(
     return result
 
 
+def scan_k_continuation(
+    params: Params,
+    k_values: Sequence[float],
+    alpha_mem: float,
+    initial_state: Sequence[float],
+    T: float,
+    burn_in: float,
+    n_points: int,
+    output_path: str | Path | None = None,
+) -> pd.DataFrame:
+    """Scan k while using each run's final state as the next initial state."""
+    rows = []
+    current_state = np.asarray(initial_state, dtype=float)
+    for k in k_values:
+        run_params = {**params, "k_fear": float(k), "alpha_mem": float(alpha_mem)}
+        df = simulate_model("memory", run_params, current_state, T=T, n_points=n_points)
+        metrics = compute_tail_metrics(df, burn_in=burn_in)
+        finite_tail = df[["x", "y", "z"]].replace([np.inf, -np.inf], np.nan).dropna()
+        if not finite_tail.empty:
+            next_state = finite_tail.iloc[-1].to_numpy(dtype=float)
+            if np.isfinite(next_state).all():
+                current_state = next_state
+        metrics.update(
+            {
+                "k_fear": float(k),
+                "alpha_mem": float(alpha_mem),
+                "class": classify_dynamics(metrics),
+                "continuation": True,
+            }
+        )
+        rows.append(metrics)
+    result = pd.DataFrame(rows)
+    if output_path is not None:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        result.to_csv(output_path, index=False)
+    return result
+
+
 def _vectorized_step(x, y, z, k_grid, alpha_grid, params):
     r = float(params["r"])
     d1 = float(params.get("d1", 0.0))

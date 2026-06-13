@@ -31,7 +31,8 @@ Comparison extensions:
 - `figures/`: generated PNG and PDF figures.
 - `literature/`: structured literature notes and summary table.
 - `docs/`: analysis notes for the final write-up.
-- `report/`: existing report assets kept for reference, not the canonical design document.
+- `overleaf_report/`: polished LaTeX source, synced figures, bibliography, and generated asset table for Overleaf.
+- `report/`: existing report assets kept for reference.
 
 ## Recommended use
 
@@ -39,6 +40,7 @@ For modeling and code work, use this directory as the main project.
 
 For report writing, start from:
 
+- `overleaf_report/main.tex`
 - `docs/final_modeling_analysis.md`
 - `docs/objective_quality_review.md`
 - `docs/course_requirements_checklist.md`
@@ -56,16 +58,19 @@ The pipeline generates:
 
 - baseline comparisons
 - `k` scans
+- continuation-style `k` scans
 - `k-alpha` two-parameter scans
 - Routh-Hurwitz theory boundary overlays
 - robustness comparisons across fear functions
 - representative cases
 - tritrophic extension outputs
 - delay / Leslie-Gower / discrete comparison outputs
+- Overleaf-ready copies under `overleaf_report/figures/`
+- generated delivery manifests under `docs/results_asset_manifest.md` and `overleaf_report/tables/asset_manifest.tex`
 
 Current validated output set:
 
-- figures `fig01` to `fig15`
+- figures `fig01` to `fig18`
 - main CSV tables in `results/`
 - time-series case exports in `results/time_series_cases/`
 

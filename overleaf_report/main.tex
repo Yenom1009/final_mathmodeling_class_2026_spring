@@ -12,7 +12,9 @@
 \usepackage{longtable}
 \usepackage{enumitem}
 \usepackage{float}
-\geometry{a4paper,scale=0.8}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue!45!black]{hyperref}
+\geometry{a4paper,margin=2.45cm}
 \pagestyle{fancy}
 
 \lhead{数学建模课程\\\today}
@@ -24,6 +26,7 @@
 \titleformat*{\section}{\bfseries\Large}
 \titleformat*{\subsection}{\bfseries\large}
 \titleformat*{\subsubsection}{\bfseries\normalsize}
+\renewcommand{\arraystretch}{1.15}
 
 \title{\bfseries 恐惧效应与记忆反馈下捕食者--猎物系统的动力学建模与稳定性分析}
 \author{姓名：\underline{\hspace{3cm}} \quad 课程ID：\underline{\hspace{2.5cm}} \quad 学号：\underline{\hspace{3cm}}}
@@ -32,17 +35,15 @@
 \begin{document}
 \maketitle
 
-\noindent\textbf{Note.} This Overleaf draft is retained as a historical writing asset.
-Its narrative and tables are not fully synchronized with the latest validated outputs in the root \texttt{results/} and \texttt{figures/} directories.
-For the final submission, update this draft using the current generated results and \texttt{docs/final\_report\_blueprint.md}.
-
 \begin{abstract}
 本文围绕恐惧效应下的捕食者--猎物动力学建立机制模型。模型主线为：捕食者数量改变猎物感知风险，感知风险降低猎物有效出生率，并进一步改变猎物与捕食者的长期动力学。本文在经典 Holling II 捕食者--猎物模型基础上，依次建立无恐惧模型、即时恐惧模型和记忆恐惧模型，并将三级食物链作为扩展模块。理论部分证明正性和有界性，推导正共存平衡、Jacobian、即时恐惧模型局部稳定性以及记忆模型的 Routh--Hurwitz 条件。数值部分通过时间序列、相图、$k$ 分岔图、$k-\alpha$ 二参数热力图和理论边界对照，展示恐惧稳定系统、恐惧降低捕食者密度但仍保持振荡、长记忆诱发或放大振荡三类典型现象。结果说明：恐惧效应不应简单理解为“使猎物更少”或“必然稳定系统”，其作用方向依赖参数区间和记忆反馈速度；本文结论属于机制模拟和定性分析，不声称对真实生态系统进行精确预测。
 \end{abstract}
 
+\noindent\textbf{关键词：}捕食者--猎物模型；恐惧效应；记忆反馈；Hopf 分岔；Routh--Hurwitz 判据；参数扫描
+
+\tableofcontents
 \clearpage
-\setcounter{section}{1}
-\section*{\centerline{一、前言（问题的提出）}}
+\section{问题重述与研究目标}
 
 捕食者对猎物的影响通常首先被理解为直接捕食，即捕食者通过杀死并消耗猎物减少猎物数量。但生态学研究表明，捕食者还会通过非消耗效应影响猎物：猎物感知到捕食风险后，可能减少觅食、改变活动区域、提高警觉性，甚至降低繁殖投入。Lima 与 Dill\upcite{lima1990behavioral}指出，动物会在生态时间尺度上评估和调节自身面临的捕食风险。Preisser 与 Bolnick\upcite{preisser2008many}进一步将这类作用概括为非消耗性捕食者效应。Zanette 等\upcite{zanette2011perceived}的鸣禽实验显示，仅感知捕食风险就可以使年后代数量下降约 $40\%$。这说明捕食者即使没有直接捕食，也可能显著改变猎物种群增长。
 
@@ -58,8 +59,7 @@ For the final submission, update this draft using the current generated results 
 \]
 其中，感知风险不仅可以由当前捕食者数量决定，还可能受到历史捕食压力影响。为避免模型过度复杂，本文先完成二维捕食者--猎物系统中的恐惧效应和记忆反馈建模，再将三级食物链作为扩展讨论。
 
-\setcounter{section}{2}
-\section*{\centerline{二、相关工作}}
+\section{文献综述与模型选择}
 
 \subsection{行为生态学依据}
 恐惧效应的生态学基础来自行为生态学。Lima 与 Dill\upcite{lima1990behavioral}强调动物会在觅食、逃避、社群活动和繁殖行为中权衡捕食风险与收益。Preisser 与 Bolnick\upcite{preisser2008many}指出，非消耗效应可通过行为、生理、存活和繁殖等路径影响猎物种群。Zanette 等\upcite{zanette2011perceived}通过野外实验说明，在排除直接捕食后，仅捕食者声音造成的风险感知即可显著降低鸣禽繁殖成功率。本文用该结果对恐惧函数的量级进行说明，而不进行真实参数拟合。
@@ -74,8 +74,7 @@ f(k,y)=\frac{1}{1+ky}.
 \subsection{时滞、记忆与扩展模型}
 Liu 等\upcite{liu2021dynamics}在恐惧效应基础上加入妊娠时滞，给出了可借鉴的参数组和 $k$ 分岔图。Yang 与 Jin\upcite{yang2022dynamics}研究的是带空间记忆的扩散型捕食者--猎物模型，本文不复现其 PDE，而是将“历史风险影响当前动力学”的思想简化为 ODE 记忆变量。Panday 等\upcite{panday2018stability}研究了三级食物链中的恐惧效应，说明恐惧可能使复杂食物链动力学趋于稳定。Zhao、Yu 与 Li\upcite{zhao2025dynamics}提供了空间扩散和 Turing 不稳定的近期扩展参考。
 
-\setcounter{section}{3}
-\section*{\centerline{三、问题分析}}
+\section{问题分析}
 
 题目要求从机制出发建立模型，而不是用真实数据做精确预测。因此，本文将主要问题拆成三层：
 \begin{enumerate}[label=(\arabic*)]
@@ -86,8 +85,7 @@ Liu 等\upcite{liu2021dynamics}在恐惧效应基础上加入妊娠时滞，给�
 
 本文重点不是把所有机制都塞入同一个主模型，而是保持主模型足够清晰：恐惧只降低猎物有效出生率，捕食仍通过 Holling II 函数发生，记忆变量只表示风险感知，不代表第三个物种。三级食物链扩展只用于说明多营养级恐惧效应的新问题。
 
-\setcounter{section}{4}
-\section*{\centerline{四、建模的假设}}
+\section{模型假设}
 
 \begin{enumerate}[label=\textbf{H\arabic*.}]
     \item 系统封闭，不考虑外来迁入和迁出。
@@ -104,8 +102,7 @@ Liu 等\upcite{liu2021dynamics}在恐惧效应基础上加入妊娠时滞，给�
     \item 若使用经验数据，只用于现象说明或参数量级校准，不声称精确预测真实种群。
 \end{enumerate}
 
-\setcounter{section}{5}
-\section*{\centerline{五、符号说明}}
+\section{符号说明}
 
 \begin{table}[H]
     \caption{\textbf{主模型符号说明}}
@@ -130,8 +127,7 @@ Liu 等\upcite{liu2021dynamics}在恐惧效应基础上加入妊娠时滞，给�
     \end{tabular}
 \end{table}
 
-\setcounter{section}{6}
-\section*{\centerline{六、数学模型建立与理论分析}}
+\section{模型建立与理论分析}
 
 \subsection{无恐惧基准模型 M0}
 令 $k=0$，不引入记忆变量，得到
@@ -279,8 +275,7 @@ Hopf 临界边界可由 $A_1A_2=A_3$ 给出。
     \label{fig:layers}
 \end{figure}
 
-\setcounter{section}{7}
-\section*{\centerline{七、结果（与对比）}}
+\section{模型求解与结果分析}
 
 \subsection{模拟设置}
 数值求解优先使用 \texttt{scipy.integrate.solve\_ivp} 的 DOP853 方法，容差设为 \texttt{rtol=1e-9, atol=1e-11}；二维大网格扫描采用向量化 RK4 以提高复现效率。尾部区间计算均值、最大值、最小值、振幅和相对振幅，并按照稳定共存、振荡共存、捕食者灭绝、猎物灭绝和低密度风险进行分类。
@@ -356,7 +351,7 @@ r=0.5,\quad d_1=0,\quad d_2=0.005,\quad p=0.08,\quad h=0.1,\quad \eta=0.5,\quad 
 \end{figure}
 
 \subsection{$k-\alpha$ 二参数扫描}
-图 \ref{fig:classheat} 显示了 $k-\alpha$ 参数平面中的动力学分类。扫描结果包含稳定共存、振荡共存、低密度风险和少量捕食者灭绝区域。图 \ref{fig:ampheat} 用连续振幅指标展示同一参数平面，可以看出不同振荡区域的强弱差异。
+图 \ref{fig:classheat} 显示了 $k-\alpha$ 参数平面中的动力学分类。扫描结果主要包含稳定共存、振荡共存和低密度风险区域；在本文主参数组和 $\alpha\in[10^{-2},5]$ 的扫描范围内，未出现大面积灭绝区。图 \ref{fig:ampheat} 用连续振幅指标展示同一参数平面，可以看出不同振荡区域的强弱差异。
 
 \begin{table}[H]
     \caption{\textbf{$k-\alpha$ 网格扫描分类计数}}
@@ -365,11 +360,9 @@ r=0.5,\quad d_1=0,\quad d_2=0.005,\quad p=0.08,\quad h=0.1,\quad \eta=0.5,\quad 
     \toprule
     分类 & 网格点数量 \\
     \midrule
-    稳定共存 stable\_coexistence & 4550 \\
-    振荡共存 oscillatory\_coexistence & 850 \\
-    低密度风险 low\_density\_risk & 156 \\
-    捕食者灭绝 predator\_extinct & 9 \\
-    数值无效 invalid & 2616 \\
+    稳定共存 stable\_coexistence & 5379 \\
+    振荡共存 oscillatory\_coexistence & 1007 \\
+    低密度风险 low\_density\_risk & 179 \\
     \bottomrule
     \end{tabular}
     \label{tab:class-count}
@@ -444,13 +437,34 @@ Zanette 等\upcite{zanette2011perceived}报告的 $40\%$ 繁殖下降可作为�
     \toprule
     案例 & $k$ & $\alpha$ & 分类 & $\bar{y}$ & $A_y$ \\
     \midrule
-    Case A & 1.0 & 5.012 & 稳定共存 & 1.713 & 0.000 \\
+    Case A & 1.0 & 5.000 & 稳定共存 & 1.713 & 0.000 \\
     Case B & 4.8 & 0.010 & 振荡共存 & 0.421 & 0.517 \\
     Case C & 5.2 & 0.010 & 振荡共存 & 0.428 & 1.502 \\
     \bottomrule
     \end{tabular}
     \label{tab:cases}
 \end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig13_representative_cases_overview.png}
+    \caption{三类代表性动力学行为的时间序列与尾部相图总览}
+    \label{fig:cases-overview}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{fig14_bifurcation_k_continuation.png}
+    \caption{固定初值扫描与连续延拓扫描的 $k$ 分岔式对照}
+    \label{fig:continuation}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{fig15_results_dashboard.png}
+    \caption{恐惧效应建模主要结果总览}
+    \label{fig:dashboard}
+\end{figure}
 
 \subsection{三级食物链扩展}
 三级食物链扩展模型为
@@ -480,8 +494,31 @@ Zanette 等\upcite{zanette2011perceived}报告的 $40\%$ 繁殖下降可作为�
     \label{fig:tri}
 \end{figure}
 
-\setcounter{section}{8}
-\section*{\centerline{八、结论}}
+\subsection{其他扩展模型对照}
+为说明本文主模型没有把所有机制混在一起，代码中还保留了三个轻量扩展模块：妊娠/响应时滞、Leslie--Gower 型捕食者增长，以及离散时间恐惧模型。它们不作为主模型理论推导对象，而是用于展示进一步建模方向。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{fig16_delay_extension.png}
+    \caption{时滞扩展模型在不同 $\tau$ 下的时间序列}
+    \label{fig:delay}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.90\textwidth]{fig17_leslie_gower_extension.png}
+    \caption{Leslie--Gower 扩展模型的时间序列与相图}
+    \label{fig:leslie}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.94\textwidth]{fig18_discrete_extension.png}
+    \caption{离散时间恐惧模型的轨道与分岔云图}
+    \label{fig:discrete}
+\end{figure}
+
+\section{结论}
 
 本文在经典捕食者--猎物模型基础上引入恐惧效应和记忆变量，构建了 M0 无恐惧、M1 即时恐惧和 M2 记忆恐惧三个层级模型，并实现了 M3 三级食物链扩展。理论分析表明，正共存平衡的存在依赖于捕食者维持条件
 \[
@@ -495,8 +532,7 @@ r>d_1+d_2x^\ast.
 
 数值模拟显示，恐惧强度增加通常会降低捕食者平均密度和峰值；在部分参数区间内，高恐惧可使系统从周期振荡转向稳定共存；但在慢记忆区域，恐惧可能降低捕食者峰值却仍保留振荡。长记忆意味着风险反馈滞后，可能拉长或放大周期，甚至引入低密度风险。理论边界与数值热力图在主要稳定区域上基本一致，但在长周期和低密度风险附近存在差异。恐惧函数替换为指数型或二次有理型后，主要趋势仍保持，说明结论具有一定机制稳健性。
 
-\setcounter{section}{9}
-\section*{\centerline{九、问题与改进方向}}
+\section{模型评价与改进方向}
 
 本文仍有以下局限：
 \begin{enumerate}[label=(\arabic*)]
@@ -504,10 +540,26 @@ r>d_1+d_2x^\ast.
     \item 记忆变量是对空间记忆和行为记忆的 ODE 化简，不能直接替代 Yang 与 Jin 的 PDE 空间记忆模型；
     \item 当前分类依赖有限时间数值模拟，极长周期区域可能需要更长时间积分；
     \item 三级食物链只做扩展模拟，没有完整推导平衡点稳定性和分岔条件；
-    \item 后续可加入 DDE 时滞、空间扩散或真实生态时间序列校准，但这些不应全部塞入主模型。
+    \item 时滞、Leslie--Gower 和离散模型目前主要用于方向展示，后续可分别补充严格稳定性分析。
 \end{enumerate}
 
 \bibliographystyle{ieeetr}
 \bibliography{refer}
+
+\appendix
+\section{代码复现与成果文件清单}
+项目根目录可通过以下命令复现主要结果：
+\begin{verbatim}
+pip install -r requirements.txt
+python -m src.run_all
+\end{verbatim}
+一键流程会生成结果表、图像、Overleaf 图像副本和本附录使用的成果清单表。最新一次生成的资产统计如下：
+
+\begin{center}
+\input{tables/asset_manifest.tex}
+\end{center}
+
+\section{报告模板说明}
+本文报告结构参考数学建模论文常用层次：问题重述、模型假设、符号说明、模型建立、模型求解、结果分析、模型评价与附录。LaTeX 源码未直接复制公开模板，而是结合课程题目和本文输出重新组织；图表均由代码生成并同步到 \texttt{overleaf\_report/figures/}。
 
 \end{document}
